@@ -643,7 +643,7 @@ function playSound(){
 
 function placeCorrectItem(){
   if(answer == 1){
-    img = createImg('', 'dog')
+    img = createImg('./doggie', 'dog')
     img.position(50, 300);
   }
   else if(answer == 2){
