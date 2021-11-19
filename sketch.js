@@ -647,7 +647,7 @@ function placeCorrectItem(){
     img.position(50, 300);
   }
   else if(answer == 2){
-    img = createImg('', 'dog')
+    img = createImg('./doggie', 'dog')
     img.position(250, 300);
   }
 }
