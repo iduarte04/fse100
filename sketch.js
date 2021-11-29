@@ -5,13 +5,20 @@ let playButton;
 let settingButton;
 let exButton;
 let button;
+let slider1, slider2, slider3;
+let checkbox1, checkbox2, checkbox3;
+let checked1 = false, checked2 = false, checked3 = false;
 let ex1, ex2, ex3;
 let exNum;
 let titleText;
+let volume;
+let inSetting = false;
+
 
 //variables for ex1
-let a, b, line1, draw1 = false; 
-let green = 0;
+let lvl = 0, a, b, line1, draw1 = false; 
+let ex1Score, green = 0, totalCircle = 0;
+let lineNum = 0;
 
 //variables for ex2
 let tutorialText;
@@ -26,12 +33,46 @@ let answerColorArray;
 let wrongAnswersCount;
 
 //variables for ex3
+let i;
+let lvl3;
+let trials = 0;
+let correct = 0;
+let wrongPrint1 = false;
 let answerItemArray;
 let answerItem;
-let img;
 
+//sound variables
+let playCorrect = false, playWrong = false, playdogBark = false;
+
+//image variables
+let dogImage, catImage, birdImage, carImage, trainImage, jpg;
+let gifPlay = false;
+//sound variables
+let dogBark, catMeow, birdSound, carSound, trainSound;
+//preload sound and image files
+function preload() {
+  dogImage = loadImage("dogImage.jpg");
+  dogBark = createAudio("dogBark.mp3");
+  catImage = loadImage("catImage.jpg");
+  catMeow = createAudio("catMeow.mp3");
+  birdImage = loadImage("birdImage.jpg");
+  birdSound = createAudio("birdSound.mp3");
+  carImage = loadImage("carImage.jpg");
+  carSound = createAudio("carSound.mp3");
+  trainImage = loadImage("trainImage.jpg");
+  trainSound = createAudio("trainSound.mp3");
+  correctSound = loadSound("correct.mp3");
+  wrongSound = loadSound("wrong.mp3");
+  cheering = createAudio("cheering.mp3");
+  jpg = loadImage("jpg.jpg");
+}
 
 function setup() {
+  inSetting = false;
+  cheering.stop();
+  exNum = 0;
+  lvl = 0;
+  
   removeElements();
   createCanvas(400, 500);
   background(140);
@@ -49,7 +90,7 @@ function setup() {
   playMenu = mainMenu();
   settingMenu = settingsMenu();
   exMenu = exitMenu();
-
+  
 }
 
 //**********************************************************************
@@ -83,6 +124,8 @@ function settingsMenu(){
 // Settings
 //**********************************************************************
 function settings(){
+  loop();
+  inSetting = true;
   playButton.remove()
   settingButton.remove()
   exButton.remove()
@@ -99,37 +142,31 @@ function settings(){
   textSize(20);
   text2 = text('Music', 50, 200);
   
-  let slider1;
   slider1 = createSlider(0, 100, 50);
   slider1.position(120, 185);
   
-  let checkbox1;
-  checkbox1 = createCheckbox('Mute', false);
+  checkbox1 = createCheckbox('Mute', checked1);
   checkbox1.position(280, 185);
   
   textSize(20);
   text('Master Audio', 50, 240);
   
-  let slider2;
   slider2 = createSlider(0, 100, 50);
   slider2.position(170, 225);
   slider2.style('width', '80px');
   
-  let checkbox2;
-  checkbox2 = createCheckbox('Mute', false);
+  checkbox2 = createCheckbox('Mute', checked2);
   checkbox2.position(280, 225);
   
   let text3;
   textSize(20);
   text3 = text('Sound Effect', 50, 280);
   
-  let slider3;
   slider3 = createSlider(0, 100, 50);
   slider3.position(170, 265);
   slider3.style('width', '80px');
   
-  let checkbox3;
-  checkbox3 = createCheckbox('Mute', false);
+  checkbox3 = createCheckbox('Mute', checked3);
   checkbox3.position(280, 265);
   
   let text4;
@@ -235,15 +272,32 @@ function exercise1(){
   clear();
   removeElements();
   background(140);
-  fill('Black');
+  fill('orange');
+  textSize(48);
   title = text('Trace it!', 0, 20, 400, 200);
-  drawLine(120, 350, 96, 298);
+  if (lvl == 0)
+    drawLine(120, 350, 96, 298);
+  else if (lvl == 1)
+    drawLine(70, 400, 196, 298);
+  else if (lvl == 2)
+    drawLine(160, 190, 80, 299);
+  else if (lvl == 3){
+    clear();
+    background(250);
+    draw1 = false;
+    exNum = 0;
+    fill('red');
+    text('Congratulations!', 0, 50, 400, 200);
+    image(jpg, 70, 120);
+    cheering.play();
+    backButton();
+  }
+    
+    
   
 }
   
   
-
-
 function drawLine(x1, x2, y1, y2){
   
     /*while (dist(x1, y1, x2, y2) < 200){
@@ -261,6 +315,7 @@ function drawLine(x1, x2, y1, y2){
     b = createVector(x2, y2);
     
     strokeWeight(3);
+    fill('violet');
     for(let i = 0.0; i < 1.0; i += 0.05){
       point(lerp(x1, x2, i), lerp(y1, y2, i));
     }
@@ -282,6 +337,22 @@ function orthogonalProjection(a, b, p) {
   
 }
 
+function nextButton(){
+  
+  button = createButton('Next');
+  button.size(140, 50);
+  button.position(260, 450);
+  let col = color('#545453');
+  button.style('background-color', col).style('border','none')
+  .style('color', 'white').style('padding','15px 48px').style('text-align',           'center').style('text-decoration', 'none').style('display','inline-block').style('font-  size','16px');
+  button.mousePressed(nextLevel);
+}
+  
+function nextLevel(){
+  correctSound.stop();
+  lvl++;
+  exercise1();
+}
 
 //**********************************************************************
 // Exercise 2
@@ -290,6 +361,8 @@ function exercise2(){
   exNum = 2;
   clear();
   removeElements();
+  accuracy = 0;
+  tries = 0;
   check = 1;
   levelCount = 1;
   level(levelCount);
@@ -562,14 +635,20 @@ function colorShape(colorOfShape){
 
 
 function checkAnswer(q){
+  correctSound.stop();
+  wrongSound.stop();
   if(answer != q && wrongPrint == false){
       wrong = text("Try Again", 200, 250);
       wrongPrint = true;
+      if (!checked2 && !checked3)
+        wrongSound.play();
       tries++;
     }
     if(answer == q){
       clear();
       check = 0;
+      if (!checked2 && !checked3)
+        correctSound.play();
       tries++;
       accuracy++;
       levelCount++;
@@ -583,7 +662,14 @@ function checkAnswer(q){
 }
 
 function score(correct, incorrect){
-  text(round(correct/incorrect * 100, 2)+ "%", 0, 20, 400);
+  let ex2Score = round(correct/incorrect * 100, 2);
+  fill('red');
+  text('Congratulations!', 0, 100, 400, 200);
+  cheering.play();
+  fill('black');
+  textSize(30);
+  text('Your Score is : ' + ex2Score + '%', 0, 150, 400, 200);
+  image(jpg, 50, 200);
   backButton();
 }
 
@@ -611,8 +697,12 @@ function exercise3(){
   removeElements();
   background(140);
   check = 2;
-  levelCount = 1;
-  levelExThree(levelCount);
+  trials = 0;
+  correct = 0;
+  lvl3 = 1;
+  levelExThree(lvl3);
+
+  
 }
 
 function levelExThree(type){
@@ -620,42 +710,134 @@ function levelExThree(type){
   fill(200);
   textSize(40);
   answerItemArray = ["Dog", "Cat", "Bird", "Car", "Train"];
-  wrongPrint = false;
+  wrongPrint1 = false;
   
   setItemAnswer();
   placeCorrectItem();
   placeIncorrectItem();
-  mousePressed();
   check = 2;
 }
 
 function setItemAnswer(){
-  var i = int(random(0, 4));
-  answer = int(random(1, 3));
+  i = int(random(0, 5));
+  answer = int(random(1, 4));
   answerItem = answerItemArray[i];
-  tutorialText = text("What made the sound?");
-  playSound();
+  //text("Listen!", 0, 50, 400, 400);
+  if (trials > 0){
+    if (answerItem == "Dog")
+      dogBark.play();
+    else if (answerItem == "Cat")
+      catMeow.play();
+    else if (answerItem == "Bird")
+      birdSound.play();
+    else if (answerItem == "Car")
+      carSound.play();
+    else if (answerItem == "Train")
+      trainSound.play();  
+  }
+ 
+  fill('blue');
+  tutorialText = text("What made the sound?", 0, 50, 400, 400);
 }
 
-function playSound(){
-  
+function wait(time){
+  start = millis()
+  do
+  {
+    current = millis();
+  }
+  while(current < start + time)
 }
 
 function placeCorrectItem(){
+  let imageArray = [dogImage, catImage, birdImage, carImage, trainImage]
   if(answer == 1){
-    img = createImg('./doggie', 'dog')
-    img.position(50, 300);
+    image(imageArray[i], 50, 300);
   }
   else if(answer == 2){
-    img = createImg('./doggie', 'dog')
-    img.position(250, 300);
+    image(imageArray[i], 250, 300);
+  }
+  else if(answer == 3){
+    image(imageArray[i], 150, 100);  
   }
 }
 
 function placeIncorrectItem(){
+  let j, k;
+  let imageArray = [dogImage, catImage, birdImage, carImage, trainImage]
+  do{
+    j = int(random(0,5));
+    k = int(random(0,5));
+  }while(j == i || k == j || k == i);
   
+    
+  if(answer == 1){
+    image(imageArray[j], 250, 300);
+    image(imageArray[k], 150, 100);
+  }
+  else if(answer == 2){
+    image(imageArray[j], 50, 300);
+    image(imageArray[k], 150, 100);
+  }
+  else if(answer == 3){
+    image(imageArray[j], 250, 300);
+    image(imageArray[k], 50, 300);
+  }
 }
 
+function checkAnswer2(q){
+  correctSound.stop();
+  wrongSound.stop();
+  
+  if (wrongPrint1 == false){
+    if (answerItem == "Dog")
+      dogBark.stop();
+    else if (answerItem == "Cat")
+      catMeow.stop();
+    else if (answerItem == "Bird")
+      birdSound.stop();
+    else if (answerItem == "Car")
+      carSound.stop();
+    else if (answerItem == "Train")
+      trainSound.stop();
+    if (trials > 0){
+      correctSound.stop();
+    }
+  }
+  
+  if(trials == 0){
+    clear();
+    
+    lvl3++;
+    trials++;
+    correct++;
+    levelExThree(lvl3)
+    
+  }else if(answer != q && wrongPrint1 == false){
+    stroke(30);
+    fill('red');
+    text("Try Again", 200, 270);
+    wrongPrint1 = true;
+    if (!checked2 && !checked3)
+      wrongSound.play();
+    trials++;
+  }
+  else if(answer == q){
+    clear();
+    check = 0;
+    if (!checked2 && !checked3)
+      correctSound.play();
+    trials++;
+    correct++;
+    lvl3++;
+    if(lvl3 > 10){
+      score(correct, trials);
+    }
+    else{
+      levelExThree(lvl3);
+    }
+  }
+}
 
 
 //**********************************************************************
@@ -666,7 +848,7 @@ function mousePressed(){
     draw1 = true;
     loop();
   }
- 
+  
   if (exNum == 2){
      fill(200);
     if(mouseX > (100 - 100/2) 
@@ -702,8 +884,37 @@ function mousePressed(){
     }
 
   }
+  if (exNum == 3){
+    if(mouseX > (50 - 100/2) 
+        && mouseX < (50 + 100) 
+        && mouseY > (300 - 100) 
+        && mouseY < (300 + 100) 
+        && check == 2){
+        checkAnswer2(1);
+
+    }
+
+    if(mouseX > (250 - 100/2) 
+        && mouseX < (250 + 100) 
+        && mouseY > (300 - 100) 
+        && mouseY < (300 + 100) 
+        && check == 2){
+        checkAnswer2(2);
+
+    }
+
+    if(mouseX > (150 - 100/2) 
+        && mouseX < (150 + 100) 
+        && mouseY > (100 - 100) 
+        && mouseY < (100 + 200) 
+        && check == 2){
+        checkAnswer2(3);
+
+    }
+
   
   
+  }
 }
 function mouseReleased(){
   if (exNum == 1){
@@ -713,42 +924,93 @@ function mouseReleased(){
 
 }
 function draw() {
+  if (inSetting){
+    volume = slider1.value()/100;
+    cheering.volume(volume);
+    dogBark.volume(volume);
+    catMeow.volume(volume);
+    birdSound.volume(volume);
+    carSound.volume(volume);
+    trainSound.volume(volume);
+    
+    if (checkbox3.checked()){
+      checked3 = true;
+      cheering.volume(0);
+    }else{
+      checked3 = false;
+      cheering.volume(volume);
+    }
+      
+    if (checkbox2.checked()){
+      checked2 = true;
+      cheering.volume(0);
+      dogBark.volume(0);
+      catMeow.volume(0);
+      birdSound.volume(0);
+      carSound.volume(0);
+      trainSound.volume(0);
+    }else{
+      checked2 = false;
+      cheering.volume(volume);
+      dogBark.volume(volume);
+      catMeow.volume(volume);
+      birdSound.volume(volume);
+      carSound.volume(volume);
+      trainSound.volume(volume);
+    }
+    
+  }
   
   if (exNum == 1 && draw1 == true){
     exercise1();
     let p = createVector(mouseX, mouseY);
     let op = orthogonalProjection(a, b, p);
     let d = p5.Vector.dist(p, op);
-    if (20 < d && d <= 100){
+    if (10 < d && d <= 100){
       strokeWeight(0);
       fill('red');
       ellipse(op.x, op.y, 20, 20);
+      totalCircle++;
       green--;
     }
     
-    if (d <= 20){
+    if (d <= 10){
       strokeWeight(0);
       fill('green');
       ellipse(op.x, op.y, 20, 20);
+      totalCircle++;
       green++
     }
 
   }else if(exNum == 1 && draw1 == false){
     exercise1();
-    if (green < -5){
-      let text1;
-      fill('red');
-      text1 = text('tap to try again!', 0, 300, 400, 200);
-      backButton();
-      green = 0;
+    if (totalCircle > 20){
+      textSize(30);
+      ex1Score = round(100*((totalCircle + green)/2)/totalCircle, 2);
+      text('Your Score is : ' + ex1Score + '%', 0, 300, 400, 200);
+      if (ex1Score < 60){
+        let text1;
+        fill('red');
+        text1 = text('tap to try again!', 0, 370, 400, 200);
+        if (!checked2 && !checked3)
+          wrongSound.play();
+        backButton();
+        green = 0;
+        totalCircle = 0;
 
-    } else if (green > 5){
-      let text2;
-      fill('green');
-      text2 = text('Goodjob!', 0, 300, 400, 200);
-      backButton();
-      green = 0;
+      } else if (ex1Score >= 60){
+        let text2;
+        fill('green');
+        text2 = text('Goodjob!', 0, 370, 400, 200);
+        if (!checked2 && !checked3)
+          correctSound.play();
+        backButton();
+        nextButton();
+        green = 0;
+        totalCircle = 0;
+      }
     }
+    
   }
 }
 
